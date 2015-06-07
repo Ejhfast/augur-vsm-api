@@ -20,10 +20,10 @@ import json
 app = Flask(__name__)
 
 def normalize(v):
-    norm=np.linalg.norm(v)
-    if norm==0: 
-       return v
-    return v/norm
+  norm=np.linalg.norm(v)
+  if norm==0:
+    return v
+  return v/norm
 
 vecs = np.load("act-vecs.npy")
 noun_vecs = np.load("noun-vecs.npy")
@@ -44,7 +44,7 @@ def query_vec(acts):
       search = add(search,normalize(vecs[vps_d[q]]))
     else:
       print("{} not in index".format(q))
-  return search
+    return search
 
 def lookup(acts,n):
   search = query_vec(acts)
@@ -55,9 +55,15 @@ def lookup(acts,n):
 @app.route("/predict/<acts>")
 @cross_origin(headers=['Content-Type'])
 def predict(acts):
-  acts = acts.split(",") # sketch
+  acts = [x.lstrip().rstrip() for x in acts.split(",")]
   results = lookup(acts,100)
   return json.dumps(results)
 
-if __name__ == "__main__":
-    app.run(debug = True,port=80)
+@app.route("/")
+@cross_origin(headers=['Content-Type'])
+def index():
+  return render_template("index.html")
+
+
+if(__name__ == "__main__"):
+  app.run(debug = True,port=8080)
