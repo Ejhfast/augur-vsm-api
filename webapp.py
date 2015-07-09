@@ -10,14 +10,19 @@ import itertools
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import pickle
-from flask import Flask, render_template
+from flask import Flask, request, render_template
 import flask
 from bson.json_util import dumps
 from bson.objectid import ObjectId
 from flask_cors import *
+from clarifai.client import ClarifaiApi
 import json
 
 app = Flask(__name__)
+
+app.debug = True
+
+clarifai_api = ClarifaiApi('pPxZ-oHfiOP8yZei2_OuzjsK3uGOZvF9YHwJSSTe', 'TAuwRHOoPdskKC3xin1vlvqN-Tw41flT0Rk42zna') # assumes environment variables are set.
 
 def normalize(v):
   norm=np.linalg.norm(v)
@@ -34,7 +39,6 @@ vps = {i:k for k,i in vps_d.iteritems()}
 app.config['CORS_ORIGINS'] = ['*']
 app.config['CORS_HEADERS'] = ['Content-Type']
 
-
 def query_vec(acts):
   search = zeros(vecs.shape[1])
   for q in acts:
@@ -44,7 +48,7 @@ def query_vec(acts):
       search = add(search,normalize(vecs[vps_d[q]]))
     else:
       print("{} not in index".format(q))
-    return search
+  return search
 
 def lookup(acts,n):
   search = query_vec(acts)
@@ -58,6 +62,15 @@ def predict(acts):
   acts = [x.lstrip().rstrip() for x in acts.split(",")]
   results = lookup(acts,100)
   return json.dumps(results)
+
+@app.route('/predict_file', methods=['POST'])
+@cross_origin(headers=['Content-Type'])
+def predict_file():
+  file = request.files['file']
+  results = clarifai_api.tag_images(file)
+  classes = results['results'][0]['result']['tag']['classes']
+  q_r = lookup(classes,20)
+  return json.dumps(q_r)
 
 @app.route("/")
 @cross_origin(headers=['Content-Type'])

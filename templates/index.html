@@ -61,7 +61,7 @@ ul#results{
     $("#results").empty();
     $("#results").append("<li>Loading...</li>");
     $.ajax({
-      url: "http://52.26.112.63/predict/"+encodeURIComponent($("#query").find("input").val()),
+      url: "/predict/"+encodeURIComponent($("#query").find("input").val()),
       success: function(result){
        $("#results").empty();
        var t1 = "<div class='half'>Human Activity</div>",
@@ -85,7 +85,7 @@ ul#results{
   });
 </script>
 <div class="doc">
-<div class="text">Enter a comma-seperated list of objects </div>
+<div class="text">Enter a comma-seperated list of objects or activities </div>
 <div class="search">
   <form id="query">
     <input></input>
